@@ -1,6 +1,6 @@
+#include "Common.h"
+#include "Motor.h"
 #include "GY521.h"
-
-using u32 = uint32_t;
 
 class PID {
 public:
@@ -67,10 +67,10 @@ struct Robot {
     motorB.stop();
   }
 
-  void update(int pwm)
+  void update()
   {
-    motorA.update(pwm);
-    motorB.update(pwm);
+    motorA.update();
+    motorB.update();
   }
 };
 
@@ -90,31 +90,25 @@ const int bPWM{ 6 };
 GY521 sensor(0x68);
 
 void setup() {
-  // Serial and Library setup
-  Serial.begin(9600);
-  Serial.println();
+  Logger::initialize();
 
-  Serial.println(__FILE__);
-  Serial.print("GY521_LIB_VERSION: ");
-  Serial.println(GY521_LIB_VERSION);
-  Serial.println();
+  Logger::log("GY521_LIB_VERSION: ");
+  Logger::log(GY521_LIB_VERSION);
+  Logger::log("\n");
 
   Wire.begin();
 
   delay(100);
   while (sensor.wakeup() == false) {
-    Serial.print(millis());
-    Serial.println("\tCould not connect to GY521: please check the GY521 address (0x68/0x69)");
+    Logger::log(millis() + "ms");
+    Logger::log("\tCould not connect to GY521: please check the GY521 address (0x68/0x69)\n");
     delay(1000);
   }
 
-  // Sensor setup
+  // Sensor setup and calibration
   sensor.setAccelSensitivity(2);  //  8g
   sensor.setGyroSensitivity(1);   //  500 degrees/s
-
   sensor.setThrottle();
-  Serial.println("Start...");
-
   sensor.calibrate(100, 0.0f, 0.0f, false);
 
   // Robot setup
@@ -146,5 +140,5 @@ void loop() {
   // TEST
   gRobot.run_forward();
 
-  gRobot.update(255);
+  gRobot.update();
 }

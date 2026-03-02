@@ -3,6 +3,6 @@
 
 /* - Engine Headers - */
 #include "Types.h"
-#include "Serial.h"
+#include "Logger.h"
 
 #endif  // !defined(COMMON_H)
