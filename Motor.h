@@ -9,15 +9,13 @@ public:
     Stationary,
     Forward,
     Backward,
-    Right,
-    Left,
 
     Count
   };
 
   Motor() = default;
   Motor(u32 pin1, u32 pin2, u32 pwmPin)
-    : mPin1(pin1), mPin2(pin2), mPWM(pwmPin), mState{ State::Stationary } {}
+    : mPin1(pin1), mPin2(pin2), mPWM(pwmPin) {}
 
   void initialize() const;
   void run_forward();

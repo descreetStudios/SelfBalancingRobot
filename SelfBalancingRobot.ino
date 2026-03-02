@@ -1,5 +1,5 @@
 #include "Common.h"
-#include "Motor.h"
+#include "Robot.h"
 #include "GY521.h"
 
 class PID {
@@ -33,50 +33,9 @@ public:
   }
 };
 
-
-struct Robot {
-  Motor motorA{};
-  Motor motorB{};
-
-  Robot() = default;
-  Robot(Motor& a, Motor& b)
-    : motorA(a), motorB(b)
-    {}
-
-  void initialize()
-  {
-    motorA.initialize();
-    motorB.initialize();
-  }
-
-  void run_forward()
-  {
-    motorA.run_forward();
-    motorB.run_forward();
-  }
-
-  void run_backward()
-  {
-    motorA.run_backward();
-    motorB.run_backward();
-  }
-
-  void stop()
-  {
-    motorA.stop();
-    motorB.stop();
-  }
-
-  void update()
-  {
-    motorA.update();
-    motorB.update();
-  }
-};
-
 // Global objects
+Robot gRobot;
 PID gPID(25.0, 0.8, 4.5, 0.0);
-Robot gRobot{};
 double gDT{ 0.0 };
 
 // Engines pins
@@ -112,9 +71,7 @@ void setup() {
   sensor.calibrate(100, 0.0f, 0.0f, false);
 
   // Robot setup
-  Motor a(7, 8, 5);
-  Motor b(12, 13, 6);
-  gRobot = Robot(a, b);
+  gRobot = Robot(7, 8, 5, /**/ 12, 13, 6);
   gRobot.initialize();
 }
 
