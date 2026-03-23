@@ -8,9 +8,7 @@ public:
   enum class State {
     Stationary,
     Forward,
-    Backward,
-
-    Count
+    Backward
   };
 
   Motor() = default;

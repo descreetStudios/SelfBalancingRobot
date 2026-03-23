@@ -36,4 +36,12 @@ void log(const String& msg, Level level) {
   Serial.print(output);
 }
 
+void logln(const String& msg, Level level) {
+  if (level < gLevel) return;
+
+  String levelStr = String(level_to_cstring(level));
+  String output = "[" + levelStr + "] " + msg;
+  Serial.println(output);
+}
+
 }  // Logger namespace

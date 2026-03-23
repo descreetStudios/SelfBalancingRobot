@@ -10,9 +10,7 @@ public:
     Forward,
     Backward,
     Right,
-    Left,
-
-    Count
+    Left
   };
 
   Robot() = default;
