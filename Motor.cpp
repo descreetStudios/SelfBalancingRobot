@@ -8,14 +8,14 @@ void Motor::initialize() const {
 void Motor::run_forward() {
   if (mState == Motor::State::Forward) return;
   digitalWrite(mPin1, LOW);
-  digitalWrite(mPin2, HIGH);
+  mPWM = mPin2;
   mState = Motor::State::Forward;
 }
 
 void Motor::run_backward() {
   if (mState == Motor::State::Backward) return;
   digitalWrite(mPin1, HIGH);
-  digitalWrite(mPin2, LOW);
+  mPWM = mPin1;
   mState = Motor::State::Backward;
 }
 

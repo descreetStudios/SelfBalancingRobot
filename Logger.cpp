@@ -36,11 +36,27 @@ void log(const String& msg, Level level) {
   Serial.print(output);
 }
 
+void log(f32 value, Level level) {
+  if (level < gLevel) return;
+
+  String levelStr = String(level_to_cstring(level));
+  String output = "[" + levelStr + "] " + value;
+  Serial.print(output);
+}
+
 void logln(const String& msg, Level level) {
   if (level < gLevel) return;
 
   String levelStr = String(level_to_cstring(level));
   String output = "[" + levelStr + "] " + msg;
+  Serial.println(output);
+}
+
+void logln(f32 value, Level level) {
+  if (level < gLevel) return;
+
+  String levelStr = String(level_to_cstring(level));
+  String output = "[" + levelStr + "] " + value;
   Serial.println(output);
 }
 

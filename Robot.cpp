@@ -5,6 +5,11 @@ void Robot::initialize() const {
   mMotorB.initialize();
 }
 
+void Robot::set_pwm(s32 pwm) {
+  mMotorA.set_pwm_value(pwm);
+  mMotorB.set_pwm_value(pwm);
+}
+
 void Robot::run_forward() {
   if (mState == Robot::State::Forward) return;
   mMotorA.run_forward();

@@ -14,11 +14,12 @@ public:
   };
 
   Robot() = default;
-  Robot(u32 a1, u32 a2, u32 aPWM,
-        u32 b1, u32 b2, u32 bPWM)
-    : mMotorA(a1, a2, aPWM), mMotorB(b1, b2, bPWM) {}
+  Robot(u32 a1, u32 a2,
+        u32 b1, u32 b2)
+    : mMotorA(a1, a2), mMotorB(b1, b2) {}
 
   void initialize() const;
+  void set_pwm(s32 pwm);
   void run_forward();
   void run_backward();
   void turn_right();

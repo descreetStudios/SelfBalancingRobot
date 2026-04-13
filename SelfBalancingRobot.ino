@@ -1,17 +1,21 @@
 #include "Common.h"
 #include "Robot.h"
 #include "GY521.h"
+#include "AdvancedPID.h"
 
 Robot gRobot;
 GY521 gSensor(0x68);
+// Kp, Ki, Kd, Kb
+AdvancedPID gPID(2.0, 5.0, 1.0, 0.0);
 
 void setup() {
-  Logger::initialize();
+  Logger::initialize(Logger::Level::Info, 2000000);
 
   Logger::log("GY521_LIB_VERSION: ");
   Logger::logln(GY521_LIB_VERSION);
 
   Wire.begin();
+  Wire.setClock(400000);
 
   delay(100);
   while (gSensor.wakeup() == false) {
@@ -21,43 +25,53 @@ void setup() {
   }
 
   // Sensor setup and calibration
-  sensor.setAccelSensitivity(2);  //  8g
-  sensor.setGyroSensitivity(1);   //  500 degrees/s
-  sensor.setThrottle();
-  sensor.calibrate(100, 0.0f, 0.0f, false);
+  gSensor.setAccelSensitivity(2);  //  8g
+  gSensor.setGyroSensitivity(1);   //  500 degrees/s
+  gSensor.setThrottle();
+  gSensor.calibrate(100, 0.0f, 0.0f, false);
 
   // Robot setup
-  gRobot = Robot(7, 8, 5, /**/ 12, 13, 6);
+  // 5, 6, 9, 10 driver
+  gRobot = Robot(5, 6, /**/ 9, 10);
   gRobot.initialize();
+
+  // PID setup
+  gPID.setOutputLimits(-255.0, 255.0);
+  gPID.setDerivativeFilter(0.8);
+  gPID.setOutputRampRate(100.0);
 }
 
+const f32 SETPOINT{ 0.0f };
+f32 gPitch{ 0.0f };
+f32 gFeedForward{ 0.0f };
+f32 gGyroRate{ 0.0f };
+
 void loop() {
-  /*
-  // Read sensor and get pitch
-  sensor.read();
-  float pitch = sensor.getPitch();
-  gRobot.angle = pitch;
-
-  Serial.println(pitch, 1);
-
-  // Calculate PID
-  gDT = millis() - gDT;
-  double output = pid.compute(gRobot.angle, gDT);
-  output = std::clamp(output, -255.0, 255.0);
-
-  gRobot.update(output, gDT);
-
-  Serial.println(output, 3);
-  */
-
-  // Print sensor info
   gSensor.read();
-  f32 pitch{gSensor.getPitch()};
-  Logger::log("Pitch: ");
-  Logger::logln(pitch);
+  gPitch = gSensor.getPitch();
+  if (gPitch > 180.0f) gPitch -= 360.0f;
+  gGyroRate = gSensor.getGyroY();
 
-  // TEST
-  gRobot.run_forward();
+  f32 output{ gPID.run(gPitch, SETPOINT, gFeedForward, gGyroRate) };
+
+  if (output > 0)
+    gRobot.run_backward();
+  else if (output < 0)
+    gRobot.run_forward();
+  else
+    gRobot.stop();
+
+  Logger::log(abs(output));
+  Logger::log(" ");
+  Logger::log(gPitch);
+  Logger::log(" ");
+  Logger::log(gGyroRate);
+  Logger::log(" ");
+  Logger::logln(gFeedForward);
+
+  //Logger::logln(millis());
+
+  //gRobot.set_pwm(abs(output));
 
   gRobot.update();
 }

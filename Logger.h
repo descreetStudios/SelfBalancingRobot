@@ -10,16 +10,16 @@ enum class Level {
   Trace,
   Info,
   Warning,
-  Error,
-
-  Count
+  Error
 };
 
 extern Level gLevel;
 
 void initialize(Level level = Level::Info, u32 channel = 9600);
 void log(const String& msg, Level level = Level::Info);
+void log(f32 value, Level level = Level::Info);
 void logln(const String& msg, Level level = Level::Info);
+void logln(f32 value, Level level = Level::Info);
 void set_level(Level level);
 
 }  // Logger namespace
