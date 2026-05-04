@@ -1,34 +1,27 @@
 #include "Common.h"
 #include "Robot.h"
-#include "GY521.h"
 #include "AdvancedPID.h"
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 
 Robot gRobot;
-GY521 gSensor(0x68);
+Adafruit_MPU6050 gSensor;
 // Kp, Ki, Kd, Kb
-AdvancedPID gPID(30.0, 1.0, 7.0, 0.0);
+AdvancedPID gPID(10.0, 0.2, 2.5, 1.5);
 
 void setup() {
-  Logger::initialize(Logger::Level::Info, 2000000);
-
-  Logger::log("GY521_LIB_VERSION: ");
-  Logger::logln(GY521_LIB_VERSION);
+  Logger::initialize(Logger::Level::Info, 115200);
 
   Wire.begin();
-  Wire.setClock(400000);
+  Wire.setClock(100000);
 
   delay(100);
-  while (gSensor.wakeup() == false) {
+  while (!gSensor.begin()) {
     Logger::log(millis() + "ms");
-    Logger::logln("\tCould not connect to GY521: please check the GY521 address (0x68/0x69)");
+    Logger::logln("\tCould not connect to Gyro Sensor: please check the address (0x68/0x69)");
     delay(1000);
   }
-
-  // Sensor setup and calibration
-  gSensor.setAccelSensitivity(2);  //  8g
-  gSensor.setGyroSensitivity(1);   //  500 degrees/s
-  gSensor.setThrottle();
-  gSensor.calibrate(100, 0.0f, 0.0f, false);
 
   // Robot setup
   // 5, 6, 9, 10 driver
@@ -37,20 +30,37 @@ void setup() {
 
   // PID setup
   gPID.setOutputLimits(-255.0, 255.0);
-  gPID.setDerivativeFilter(0.8);
-  gPID.setOutputRampRate(100.0);
+  gPID.setDerivativeFilter(0.1);
+  //gPID.setOutputRampRate(500.0);
+
+  delay(200);
 }
 
-const f32 SETPOINT{ -0.7f };
+const f32 SETPOINT{ 0.0f };
 f32 gRoll{ 0.0f };
 f32 gFeedForward{ 0.0f };
 f32 gGyroRate{ 0.0f };
 
 void loop() {
-  gSensor.read();
-  gRoll = gSensor.getRoll();
-  if (gRoll > 180.0f) gRoll -= 360.0f;
-  gGyroRate = gSensor.getGyroX();
+  static long lastTime{ 0 };
+  unsigned long currentTime{ micros() };
+  float dt{ (currentTime - lastTime) / 1000000.0f };
+  lastTime = currentTime;
+
+  sensors_event_t a, g, temp;
+  gSensor.getEvent(&a, &g, &temp);
+  float ay = a.acceleration.y;
+  float az = a.acceleration.z;
+  float accelAngle = atan2(a.acceleration.y, a.acceleration.z) * RAD_TO_DEG;
+  gGyroRate = g.gyro.x * RAD_TO_DEG;
+
+  if (dt <= 0 || dt > 0.02f) dt = 0.01f;
+
+  const float alpha = 0.995f;
+
+  gRoll = alpha * (gRoll + gGyroRate * dt) +
+          (1.0f - alpha) * accelAngle;
+
 
   f32 output{ gPID.run(gRoll, SETPOINT, gFeedForward, gGyroRate) };
 
@@ -58,20 +68,13 @@ void loop() {
     gRobot.run_backward();
   else if (output < 0)
     gRobot.run_forward();
-  else
-    gRobot.stop();
-  
+
   Logger::log(abs(output));
   Logger::log(" ");
   Logger::log(gRoll);
   Logger::log(" ");
-  Logger::log(gGyroRate);
-  Logger::log(" ");
-  Logger::logln(gFeedForward);
-
-  //Logger::logln(millis());
+  Logger::logln(gGyroRate);
 
   gRobot.set_pwm(abs(output));
-
   gRobot.update();
 }

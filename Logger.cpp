@@ -19,6 +19,7 @@ const char* level_to_cstring(Logger::Level level) {
 }  // anonymous namespace
 
 void initialize(Level level, u32 channel) {
+  while (!Serial) delay(10);
   gLevel = level;
   Serial.begin(channel);
   Serial.println();
