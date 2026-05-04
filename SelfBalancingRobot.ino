@@ -6,7 +6,7 @@
 Robot gRobot;
 GY521 gSensor(0x68);
 // Kp, Ki, Kd, Kb
-AdvancedPID gPID(2.0, 5.0, 1.0, 0.0);
+AdvancedPID gPID(30.0, 1.0, 7.0, 0.0);
 
 void setup() {
   Logger::initialize(Logger::Level::Info, 2000000);
@@ -41,18 +41,18 @@ void setup() {
   gPID.setOutputRampRate(100.0);
 }
 
-const f32 SETPOINT{ 0.0f };
-f32 gPitch{ 0.0f };
+const f32 SETPOINT{ -0.7f };
+f32 gRoll{ 0.0f };
 f32 gFeedForward{ 0.0f };
 f32 gGyroRate{ 0.0f };
 
 void loop() {
   gSensor.read();
-  gPitch = gSensor.getPitch();
-  if (gPitch > 180.0f) gPitch -= 360.0f;
-  gGyroRate = gSensor.getGyroY();
+  gRoll = gSensor.getRoll();
+  if (gRoll > 180.0f) gRoll -= 360.0f;
+  gGyroRate = gSensor.getGyroX();
 
-  f32 output{ gPID.run(gPitch, SETPOINT, gFeedForward, gGyroRate) };
+  f32 output{ gPID.run(gRoll, SETPOINT, gFeedForward, gGyroRate) };
 
   if (output > 0)
     gRobot.run_backward();
@@ -60,10 +60,10 @@ void loop() {
     gRobot.run_forward();
   else
     gRobot.stop();
-
+  
   Logger::log(abs(output));
   Logger::log(" ");
-  Logger::log(gPitch);
+  Logger::log(gRoll);
   Logger::log(" ");
   Logger::log(gGyroRate);
   Logger::log(" ");
@@ -71,7 +71,7 @@ void loop() {
 
   //Logger::logln(millis());
 
-  //gRobot.set_pwm(abs(output));
+  gRobot.set_pwm(abs(output));
 
   gRobot.update();
 }
