@@ -8,7 +8,7 @@
 Robot gRobot;
 Adafruit_MPU6050 gSensor;
 // Kp, Ki, Kd, Kb
-AdvancedPID gPID(10.0, 0.2, 2.5, 1.5);
+AdvancedPID gPID(30.0, 0.4, 2.5, 1.5);
 
 void setup() {
   Logger::initialize(Logger::Level::Info, 115200);
@@ -60,7 +60,7 @@ void loop() {
 
   gRoll = alpha * (gRoll + gGyroRate * dt) +
           (1.0f - alpha) * accelAngle;
-
+  
 
   f32 output{ gPID.run(gRoll, SETPOINT, gFeedForward, gGyroRate) };
 
@@ -69,7 +69,7 @@ void loop() {
   else if (output < 0)
     gRobot.run_forward();
 
-  Logger::log(abs(output));
+  Logger::log(output);
   Logger::log(" ");
   Logger::log(gRoll);
   Logger::log(" ");

@@ -14,7 +14,7 @@ void Motor::run_forward() {
 
 void Motor::run_backward() {
   if (mState == Motor::State::Backward) return;
-  digitalWrite(mPin1, HIGH);
+  digitalWrite(mPin2, LOW);
   mPWM = mPin1;
   mState = Motor::State::Backward;
 }
